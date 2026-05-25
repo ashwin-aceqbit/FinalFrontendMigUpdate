@@ -18,8 +18,8 @@ import { FileDropzoneLabComponent } from './components/file-dropzone-lab/file-dr
 import { ContextMenuOverlaysLabComponent } from './components/context-menu-overlays-lab/context-menu-overlays-lab.component';
 
 @Component({
-    selector: 'app-root',
-    imports: [
+  selector: 'app-root',
+  imports: [
     LayoutManagerComponent,
     DashboardWidgetsComponent,
     WorkflowDesignerComponent,
@@ -36,9 +36,9 @@ import { ContextMenuOverlaysLabComponent } from './components/context-menu-overl
     ChipsInputLabComponent,
     FileDropzoneLabComponent,
     ContextMenuOverlaysLabComponent
-],
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css']
+  ],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent {
   activeSection: string = 'dashboard';

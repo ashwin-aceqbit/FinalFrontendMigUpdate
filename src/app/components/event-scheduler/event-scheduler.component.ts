@@ -16,17 +16,17 @@ interface ScheduledEvent {
 }
 
 @Component({
-    selector: 'app-event-scheduler',
-    imports: [CommonModule, FormsModule],
-    templateUrl: './event-scheduler.component.html',
-    styleUrls: ['./event-scheduler.component.css']
+  selector: 'app-event-scheduler',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './event-scheduler.component.html',
+  styleUrls: ['./event-scheduler.component.css']
 })
 export class EventSchedulerComponent implements OnInit {
   events: ScheduledEvent[] = [];
   hours = Array.from({ length: 24 }, (_, i) => i);
   days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   dayHourSlots = Array.from({ length: 24 }, (_, i) => i);
-  
+
   selectedView: 'day' | 'week' | 'month' | 'agenda' = 'day';
   editingEventId: number | null = null;
   activeDate = new Date();
@@ -41,7 +41,7 @@ export class EventSchedulerComponent implements OnInit {
     description: ''
   };
   minutes = Array.from({ length: 60 }, (_, i) => i);
-  
+
   monthGrid: (Date | null)[][] = [];
   currentMonth: number = new Date().getMonth();
   currentYear: number = new Date().getFullYear();
@@ -171,7 +171,7 @@ export class EventSchedulerComponent implements OnInit {
       startTime: startTimeStr,
       endTime: endTimeStr
     });
-    
+
     if (this.eventDraft.status) {
       sharedEvent.status = this.eventDraft.status;
     }

@@ -16,198 +16,197 @@
   </div>
 
   @if (showEventPopup) {
-    <div class="scheduler-editor">
-      <div class="editor-grid">
-        <label>
-          Title
-          <input [(ngModel)]="eventDraft.title" type="text" placeholder="Add event title">
-        </label>
-        <label>
-          Date
-          <input [(ngModel)]="eventDraft.date" type="date" [ngModelOptions]="{standalone: true}" (change)="onDateInputChange($event)">
-          <span class="field-hint">Single date only.</span>
-        </label>
-        <label>
-          Start
-          <div style="display: flex; gap: 4px;">
-            <select [(ngModel)]="eventDraft.startHour">
-              @for (hour of hours; track hour) {
-                <option [value]="hour">{{ hour < 10 ? '0' + hour : hour }}</option>
-              }
-            </select>
-            <span>:</span>
-            <select [(ngModel)]="eventDraft.startMinute">
-              @for (minute of minutes; track minute) {
-                <option [value]="minute">{{ minute < 10 ? '0' + minute : minute }}</option>
-              }
-            </select>
-          </div>
-        </label>
-        <label>
-          End
-          <div style="display: flex; gap: 4px;">
-            <select [(ngModel)]="eventDraft.endHour">
-              @for (hour of hours; track hour) {
-                <option [value]="hour">{{ hour < 10 ? '0' + hour : hour }}</option>
-              }
-            </select>
-            <span>:</span>
-            <select [(ngModel)]="eventDraft.endMinute">
-              @for (minute of minutes; track minute) {
-                <option [value]="minute">{{ minute < 10 ? '0' + minute : minute }}</option>
-              }
-            </select>
-          </div>
-        </label>
-        <label>
-          Status
-          <select [(ngModel)]="eventDraft.status">
-            <option value="confirmed">Confirmed</option>
-            <option value="pending">Pending</option>
-            <option value="cancelled">Cancelled</option>
+  <div class="scheduler-editor">
+    <div class="editor-grid">
+      <label>
+        Title
+        <input [(ngModel)]="eventDraft.title" type="text" placeholder="Add event title">
+      </label>
+      <label>
+        Date
+        <input [(ngModel)]="eventDraft.date" type="date" [ngModelOptions]="{standalone: true}"
+          (change)="onDateInputChange($event)">
+        <span class="field-hint">Single date only.</span>
+      </label>
+      <label>
+        Start
+        <div style="display: flex; gap: 4px;">
+          <select [(ngModel)]="eventDraft.startHour">
+            @for (hour of hours; track hour) {
+            <option [value]="hour">{{ hour < 10 ? '0' + hour : hour }}</option>
+                }
           </select>
-        </label>
-        <label class="wide">
-          Description
-          <textarea [(ngModel)]="eventDraft.description" rows="2"></textarea>
-        </label>
-      </div>
-      <div class="editor-actions">
-        <button class="action-btn primary" (click)="saveEvent()">{{ editingEventId ? 'Update' : 'Add' }}</button>
-        <button class="action-btn" (click)="showEventPopup = false">Close</button>
-      </div>
+          <span>:</span>
+          <select [(ngModel)]="eventDraft.startMinute">
+            @for (minute of minutes; track minute) {
+            <option [value]="minute">{{ minute < 10 ? '0' + minute : minute }}</option>
+                }
+          </select>
+        </div>
+      </label>
+      <label>
+        End
+        <div style="display: flex; gap: 4px;">
+          <select [(ngModel)]="eventDraft.endHour">
+            @for (hour of hours; track hour) {
+            <option [value]="hour">{{ hour < 10 ? '0' + hour : hour }}</option>
+                }
+          </select>
+          <span>:</span>
+          <select [(ngModel)]="eventDraft.endMinute">
+            @for (minute of minutes; track minute) {
+            <option [value]="minute">{{ minute < 10 ? '0' + minute : minute }}</option>
+                }
+          </select>
+        </div>
+      </label>
+      <label>
+        Status
+        <select [(ngModel)]="eventDraft.status">
+          <option value="confirmed">Confirmed</option>
+          <option value="pending">Pending</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </label>
+      <label class="wide">
+        Description
+        <textarea [(ngModel)]="eventDraft.description" rows="2"></textarea>
+      </label>
     </div>
+    <div class="editor-actions">
+      <button class="action-btn primary" (click)="saveEvent()">{{ editingEventId ? 'Update' : 'Add' }}</button>
+      <button class="action-btn" (click)="showEventPopup = false">Close</button>
+    </div>
+  </div>
   }
 
   @if (selectedView === 'day') {
-    <section class="day-view-panel">
-      <div class="panel-heading">
-        <div>
-          <h3>{{ activeDate | date: 'fullDate' }}</h3>
-        </div>
-        <div class="panel-actions">
-          <button class="action-btn" (click)="prevDay()">Previous</button>
-          <button class="action-btn" (click)="nextDay()">Next</button>
-        </div>
+  <section class="day-view-panel">
+    <div class="panel-heading">
+      <div>
+        <h3>{{ activeDate | date: 'fullDate' }}</h3>
       </div>
-      <div class="day-grid" style="position: relative; padding-top: 14px; gap: 0;">
-        @for (hour of dayHourSlots; track hour) {
-          <button class="timeline-row" (click)="openNewEvent(activeDate, hour)">
-            <div class="timeline-hour">{{ hour | number: '2.0-0' }}:00</div>
-            <div class="timeline-events-empty" style="width: 100%;"></div>
-          </button>
-        }
-        
-        @for (event of getEventsForDay(activeDate); track event) {
-          <article class="event-card-spanning" [ngClass]="event.status"
-            [style.top.px]="getEventTopOffset(event)"
-            [style.height.px]="calculateHeight(event)"
-            (click)="editEvent(event); $event.stopPropagation()">
-            <div class="event-centered-content">
-              <strong>{{ event.title }}</strong>
-              <span>{{ event.startTime }} - {{ event.endTime }} (Duration: {{ getDurationString(event) }})</span>
-            </div>
-          </article>
-        }
+      <div class="panel-actions">
+        <button class="action-btn" (click)="prevDay()">Previous</button>
+        <button class="action-btn" (click)="nextDay()">Next</button>
       </div>
-    </section>
+    </div>
+    <div class="day-grid" style="position: relative; padding-top: 14px; gap: 0;">
+      @for (hour of dayHourSlots; track hour) {
+      <button class="timeline-row" (click)="openNewEvent(activeDate, hour)">
+        <div class="timeline-hour">{{ hour | number: '2.0-0' }}:00</div>
+        <div class="timeline-events-empty" style="width: 100%;"></div>
+      </button>
+      }
+
+      @for (event of getEventsForDay(activeDate); track event) {
+      <article class="event-card-spanning" [ngClass]="event.status" [style.top.px]="getEventTopOffset(event)"
+        [style.height.px]="calculateHeight(event)" (click)="editEvent(event); $event.stopPropagation()">
+        <div class="event-centered-content">
+          <strong>{{ event.title }}</strong>
+          <span>{{ event.startTime }} - {{ event.endTime }} (Duration: {{ getDurationString(event) }})</span>
+        </div>
+      </article>
+      }
+    </div>
+  </section>
   }
 
   @if (selectedView === 'week') {
-    <section class="week-view-panel">
-      <div class="panel-heading">
-        <div>
-          <h3>Week View</h3>
-          <p>{{ weekDates[0] | date: 'MMM d' }} - {{ weekDates[6] | date: 'MMM d, y' }}</p>
-          <p class="week-selected">Selected: {{ activeDate | date: 'EEEE, MMM d' }}</p>
+  <section class="week-view-panel">
+    <div class="panel-heading">
+      <div>
+        <h3>Week View</h3>
+        <p>{{ weekDates[0] | date: 'MMM d' }} - {{ weekDates[6] | date: 'MMM d, y' }}</p>
+        <p class="week-selected">Selected: {{ activeDate | date: 'EEEE, MMM d' }}</p>
+      </div>
+    </div>
+    <div class="week-grid">
+      @for (day of weekDates; track day.toISOString(); let index = $index) {
+      <article class="week-card">
+        <button type="button" class="week-card-day" (click)="selectWeekDay(day)">
+          <strong>{{ days[index] }}</strong>
+          <span>{{ day | date: 'MMM d' }}</span>
+        </button>
+        <div class="week-card-events">
+          @for (event of getEventsForDay(day); track event.id) {
+          <div class="agenda-chip" [ngClass]="event.status" (click)="editEvent(event); $event.stopPropagation()">
+            <span>{{ event.startTime }} to {{ event.endTime }}</span>
+            <strong>{{ event.title }}</strong>
+          </div>
+          }
         </div>
-      </div>
-      <div class="week-grid">
-        @for (day of weekDates; track day.toISOString(); let index = $index) {
-          <article class="week-card">
-            <button type="button" class="week-card-day" (click)="selectWeekDay(day)">
-              <strong>{{ days[index] }}</strong>
-              <span>{{ day | date: 'MMM d' }}</span>
-            </button>
-            <div class="week-card-events">
-              @for (event of getEventsForDay(day); track event.id) {
-                <div class="agenda-chip" [ngClass]="event.status" (click)="editEvent(event); $event.stopPropagation()">
-                  <span>{{ event.startTime }} to {{ event.endTime }}</span>
-                  <strong>{{ event.title }}</strong>
-                </div>
-              }
-            </div>
-          </article>
-        }
-      </div>
-    </section>
+      </article>
+      }
+    </div>
+  </section>
   }
 
   @if (selectedView === 'month') {
-    <section class="month-view-panel">
-      <div class="panel-heading">
-        <div>
-          <h3>{{ currentYear }} / {{ currentMonth + 1 }}</h3>
-          <p>Calendar grid with the full month laid out in tidy cells.</p>
-        </div>
-        <div class="panel-actions">
-          <button class="action-btn" (click)="prevMonth()">Previous</button>
-          <button class="action-btn" (click)="nextMonth()">Next</button>
-        </div>
+  <section class="month-view-panel">
+    <div class="panel-heading">
+      <div>
+        <h3>{{ currentYear }} / {{ currentMonth + 1 }}</h3>
+        <p>Calendar grid with the full month laid out in tidy cells.</p>
       </div>
-      <div class="month-grid">
-        @for (week of monthGrid; track week) {
-          @for (d of week; track d) {
-            <button type="button" class="month-day-cell" [class.empty]="!d" (click)="d && openNewEvent(d, 9)">
-              @if (d) {
-                <span class="month-day-number">{{ d.getDate() }}</span>
-              }
-              @if (d) {
-                <div class="month-day-events">
-                  @for (event of getEventsForDay(d); track event) {
-                    <span class="month-event" [ngClass]="event.status" (click)="editEvent(event); $event.stopPropagation()">
-                      {{ event.startTime }} - {{ event.endTime }} {{ event.title }}
-                    </span>
-                  }
-                </div>
-              }
-            </button>
-          }
+      <div class="panel-actions">
+        <button class="action-btn" (click)="prevMonth()">Previous</button>
+        <button class="action-btn" (click)="nextMonth()">Next</button>
+      </div>
+    </div>
+    <div class="month-grid">
+      @for (week of monthGrid; track week) {
+      @for (d of week; track d) {
+      <button type="button" class="month-day-cell" [class.empty]="!d" (click)="d && openNewEvent(d, 9)">
+        @if (d) {
+        <span class="month-day-number">{{ d.getDate() }}</span>
         }
-      </div>
-    </section>
+        @if (d) {
+        <div class="month-day-events">
+          @for (event of getEventsForDay(d); track event) {
+          <span class="month-event" [ngClass]="event.status" (click)="editEvent(event); $event.stopPropagation()">
+            {{ event.startTime }} - {{ event.endTime }} {{ event.title }}
+          </span>
+          }
+        </div>
+        }
+      </button>
+      }
+      }
+    </div>
+  </section>
   }
 
   @if (selectedView === 'agenda') {
-    <section class="agenda-view">
-      <div class="panel-heading">
-        <div>
-          <h3>Agenda</h3>
-          <p>Every event in one clean list.</p>
+  <section class="agenda-view">
+    <div class="panel-heading">
+      <div>
+        <h3>Agenda</h3>
+        <p>Every event in one clean list.</p>
+      </div>
+      <button class="action-btn" (click)="openNewEvent(activeDate, 9)">Add Event</button>
+    </div>
+    <div class="agenda-list">
+      @for (event of events; track event) {
+      <article class="agenda-item" [ngClass]="event.status">
+        <div class="agenda-date">{{ event.date | date: 'EEE, MMM d' }}</div>
+        <div class="agenda-details">
+          <strong>{{ event.title }}</strong>
+          <button class="agenda-time" type="button" (click)="openAgendaTime(event)">
+            {{ event.startTime }} - {{ event.endTime }}
+          </button>
+          <p>{{ event.description }}</p>
+          @if(event.updatedAt) {
+          <small class="timestamp-stamp">Added on: {{ event.updatedAt | date:'medium' }}</small>
+          }
+          <div class="agenda-actions">
+            <button class="action-btn" type="button" (click)="editEvent(event)">Edit</button>
+            <button class="action-btn danger" type="button" (click)="deleteEvent(event.id)">Remove</button>
+          </div>
         </div>
-        <button class="action-btn" (click)="openNewEvent(activeDate, 9)">Add Event</button>
-      </div>
-      <div class="agenda-list">
-        @for (event of events; track event) {
-          <article class="agenda-item" [ngClass]="event.status">
-            <div class="agenda-date">{{ event.date | date: 'EEE, MMM d' }}</div>
-            <div class="agenda-details">
-              <strong>{{ event.title }}</strong>
-              <button class="agenda-time" type="button" (click)="openAgendaTime(event)">
-                {{ event.startTime }} - {{ event.endTime }}
-              </button>
-              <p>{{ event.description }}</p>
-              @if(event.updatedAt) {
-                <small class="timestamp-stamp">Added on: {{ event.updatedAt | date:'medium' }}</small>
-              }
-              <div class="agenda-actions">
-                <button class="action-btn" type="button" (click)="editEvent(event)">Edit</button>
-                <button class="action-btn danger" type="button" (click)="deleteEvent(event.id)">Remove</button>
-              </div>
-            </div>
-          </article>
-        }
-      </div>
-    </section>
+      </article>
+      }
+    </div>
+  </section>
   }
 </div>
