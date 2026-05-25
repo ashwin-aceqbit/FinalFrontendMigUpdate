@@ -1,8 +1,8 @@
 <div class="stepper-container">
   <div class="stepper-hero">
     <div>
-      <p class="eyebrow">Deployment Wizard</p>
-      <div class="stepper-title">Deployment Setup Wizard</div>
+      <p class="eyebrow">Deployment Profile</p>
+      <div class="stepper-title">Deployment Profile Setup</div>
     </div>
     <p class="stepper-summary">Identity verification, resource configuration, security protocols, and final review are connected in sequence.</p>
   </div>
@@ -14,6 +14,7 @@
         <span class="step-label">{{ step.label }}</span>
       </div>
     }
+    <div class="transition-line" [style.width.%]="(currentStep / (steps.length -1)) * 100"></div>
   </div>
 
   <div class="stepper-body">
@@ -94,9 +95,7 @@
       <button (click)="nextStep()" class="btn-primary">Continue</button>
     }
     @if (currentStep === steps.length - 1) {
-      <button (click)="submitForm()" class="btn-success">Provision Resource</button>
+      <button (click)="submitForm()" class="btn-success">Save</button>
     }
   </div>
-
-  <div class="transition-line" [style.width.%]="(currentStep / (steps.length -1)) * 100"></div>
 </div>

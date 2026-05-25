@@ -85,7 +85,7 @@ export class EventSchedulerComponent implements OnInit {
 
   getEventsForSlot(date: Date, hour: number): ScheduledEvent[] {
     return this.events.filter(e => {
-      const eventDate = new Date(e.date);
+      const eventDate = this.parseDateKey(e.date);
       const dayMatches = eventDate.toDateString() === date.toDateString();
       const eventHour = Number(e.startTime.split(':')[0]);
       const endHour = Number(e.endTime.split(':')[0]);
@@ -120,13 +120,13 @@ export class EventSchedulerComponent implements OnInit {
 
   editEvent(event: ScheduledEvent) {
     this.editingEventId = event.id;
-    this.activeDate = new Date(event.date);
+    this.activeDate = this.parseDateKey(event.date);
     this.currentMonth = this.activeDate.getMonth();
     this.currentYear = this.activeDate.getFullYear();
     this.generateMonthGrid();
     this.eventDraft = {
       title: event.title,
-      date: this.toDateInput(new Date(event.date)),
+      date: this.toDateInput(this.parseDateKey(event.date)),
       startTime: event.startTime,
       endTime: event.endTime,
       status: event.status,
@@ -140,7 +140,7 @@ export class EventSchedulerComponent implements OnInit {
       id: this.editingEventId ?? Date.now(),
       title: this.eventDraft.title,
       details: this.eventDraft.description,
-      date: new Date(this.eventDraft.date),
+      date: this.fromDateInput(this.eventDraft.date),
       source: 'scheduler',
       editable: true,
       startTime: this.eventDraft.startTime,
@@ -193,7 +193,23 @@ export class EventSchedulerComponent implements OnInit {
   }
 
   private toDateInput(date: Date): string {
-    return date.toISOString().slice(0, 10);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private fromDateInput(value: string): Date {
+    const [year, month, day] = value.split('-').map(Number);
+    if (!year || !month || !day) {
+      return new Date(value);
+    }
+    return new Date(year, month - 1, day);
+  }
+
+  private parseDateKey(value: string): Date {
+    const [datePart] = value.split('T');
+    return this.fromDateInput(datePart);
   }
 
   private timeDiffHours(startTime: string, endTime: string): number {
@@ -230,7 +246,7 @@ export class EventSchedulerComponent implements OnInit {
 
   getEventsForDay(date: Date): ScheduledEvent[] {
     if (!date) return [];
-    return this.events.filter(e => new Date(e.date).toDateString() === date.toDateString());
+    return this.events.filter(e => this.parseDateKey(e.date).toDateString() === date.toDateString());
   }
 
   getWeekDates(): Date[] {

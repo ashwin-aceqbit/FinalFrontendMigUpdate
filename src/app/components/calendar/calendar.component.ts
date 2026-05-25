@@ -113,7 +113,7 @@ export class CalendarComponent implements OnInit {
   }
 
   startEdit(event: SharedCalendarEvent) {
-    this.selectedDate = new Date(event.date);
+    this.selectedDate = this.parseLocalDate(event.date);
     this.editingEventId = event.id;
     this.eventDraft = {
       title: event.title,
@@ -173,7 +173,19 @@ export class CalendarComponent implements OnInit {
   }
 
   private getDateKey(date: Date): string {
-    return date.toISOString().slice(0, 10);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private parseLocalDate(dateKey: string): Date {
+    const [datePart] = dateKey.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    if (!year || !month || !day) {
+      return new Date(dateKey);
+    }
+    return new Date(year, month - 1, day);
   }
 
   private getPriorityWeight(priority?: 'low' | 'medium' | 'high'): number {

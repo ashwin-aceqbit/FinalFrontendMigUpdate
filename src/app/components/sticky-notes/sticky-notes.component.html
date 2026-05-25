@@ -1,7 +1,9 @@
 <div class="board">
   <div class="board-header">
-    <h1>Sticky Board</h1>
-    <button class="add-btn" (click)="addNote()">+ Add New Note</button>
+    <div class="board-header-top">
+      <h1>Sticky Board</h1>
+      <button class="add-btn" (click)="addNote()">+ Add New Note</button>
+    </div>
     <div class="stats">
       <span>Total Notes: {{notes.length}}</span>
       <span>Pinned: {{ getPinnedCount() }}</span>

@@ -60,7 +60,7 @@ export class StickyNotesComponent implements OnInit {
         x: Math.random() * 800,
         y: Math.random() * 600,
         color: this.colors[i % this.colors.length],
-        isPinned: Math.random() > 0.8,
+        isPinned: i < 2,
         lastModified: new Date(),
         tags: ['stress-test', 'angular-16', 'heavy-data'],
         priority: i % 3 === 0 ? 'high' : (i % 3 === 1 ? 'medium' : 'low'),

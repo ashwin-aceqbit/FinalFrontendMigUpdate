@@ -141,9 +141,10 @@ export class SharedDataService {
     priority?: 'low' | 'medium' | 'high';
     id?: number;
   }) {
+    const dateKey = this.toLocalDateKey(payload.date);
     const event: SharedCalendarEvent = {
       id: payload.id ?? Date.now(),
-      date: payload.date.toISOString(),
+      date: dateKey,
       title: payload.title,
       details: payload.details,
       editable: payload.editable ?? true,
@@ -159,6 +160,13 @@ export class SharedDataService {
     };
 
     return event;
+  }
+
+  private toLocalDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   public dayNameToDate(dayName: string, referenceDate: Date = new Date()): Date {

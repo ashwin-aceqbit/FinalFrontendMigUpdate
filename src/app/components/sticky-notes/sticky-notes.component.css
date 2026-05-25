@@ -13,12 +13,18 @@
   background: white;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+  position: relative;
+}
+
+.board-header-top {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  z-index: 1000;
-  position: relative;
+  width: 100%;
 }
 
 .board-header h1 {

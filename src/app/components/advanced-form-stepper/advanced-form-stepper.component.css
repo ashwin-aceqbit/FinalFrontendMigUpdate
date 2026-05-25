@@ -142,10 +142,10 @@ input[type="text"], input[type="email"], select {
 
 .transition-line {
   position: absolute;
-  top: 71px;
-  left: 12.5%;
-  right: 12.5%;
-  height: 2px;
+  top: 45px;
+  left: calc(12.5% + 20px);
+  right: calc(12.5% + 20px);
+  height: 4px;
   background-color: #3b82f6;
   z-index: 1;
   transition: width 0.3s ease-in-out;

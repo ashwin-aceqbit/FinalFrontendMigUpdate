@@ -19,6 +19,12 @@ export class FileDropzoneLabComponent implements OnDestroy {
   files: DropFile[] = [];
   dragActive = false;
   private timers = new Map<number, number>();
+  private readonly allowedExtensions = new Set(['pdf', 'doc', 'docx', 'jpeg', 'jpg', 'png', 'gif', 'webp']);
+  private readonly allowedMimeTypes = new Set([
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ]);
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -64,7 +70,7 @@ export class FileDropzoneLabComponent implements OnDestroy {
       return;
     }
 
-    Array.from(fileList).forEach(file => {
+    Array.from(fileList).filter(file => this.isAllowedFile(file)).forEach(file => {
       const item: DropFile = {
         id: Date.now() + Math.floor(Math.random() * 1000),
         name: file.name,
@@ -76,6 +82,19 @@ export class FileDropzoneLabComponent implements OnDestroy {
       this.files = [item, ...this.files];
       this.startUploadSimulation(item.id);
     });
+  }
+
+  private isAllowedFile(file: File): boolean {
+    if (file.type.startsWith('image/')) {
+      return true;
+    }
+
+    if (this.allowedMimeTypes.has(file.type)) {
+      return true;
+    }
+
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    return extension ? this.allowedExtensions.has(extension) : false;
   }
 
   private startUploadSimulation(id: number) {

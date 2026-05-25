@@ -12,7 +12,7 @@
     (dragleave)="onDragLeave($event)"
     (drop)="onDrop($event)"
     >
-    <input type="file" multiple (change)="onBrowse($event)">
+    <input type="file" multiple accept=".pdf,.doc,.docx,image/*" (change)="onBrowse($event)">
     <strong>Drop files here</strong>
     <span>or click to browse</span>
   </div>

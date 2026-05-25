@@ -48,7 +48,7 @@ export class AppComponent {
     { id: 'workflow', label: 'Workflow Designer', icon: '🔗' },
     { id: 'calendar', label: 'Enterprise Calendar', icon: '📅' },
     { id: 'scheduler', label: 'Event Scheduler', icon: '⏱️' },
-    { id: 'stepper', label: 'Deployment Wizard', icon: '⚡' },
+    { id: 'stepper', label: 'Deployment Profile', icon: '⚡' },
     { id: 'labs', label: 'Component Labs', icon: '🧪' },
     { id: 'notes', label: 'Sticky Board', icon: '📌' },
     { id: 'notifications', label: 'Alert Hub', icon: '🔔' },
