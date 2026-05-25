@@ -14,7 +14,7 @@
         <span class="step-label">{{ step.label }}</span>
       </div>
     }
-    <div class="transition-line" [style.width.%]="(currentStep / (steps.length -1)) * 100"></div>
+    <div class="transition-line" [style.transform]="'scaleX(' + (currentStep / (steps.length - 1)) + ')'" ></div>
   </div>
 
   <div class="stepper-body">

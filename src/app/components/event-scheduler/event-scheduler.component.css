@@ -8,7 +8,6 @@
 .view-selector button.active{background:#0f62fe;color:#fff;border-color:#0f62fe}
 .action-btn{font-weight:600}
 .action-btn.primary{background:#0f62fe;color:#fff;border-color:#0f62fe}
-.conflict-btn{background:#ea4335;color:#fff;border-color:#ea4335}
 .scheduler-editor{background:#f8fafc;border:1px solid #e5e7eb;border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(15,23,42,.08)}
 .scheduler-editor,.day-view-panel,.week-view-panel,.month-view-panel,.agenda-view{min-width:0}
 .editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -29,11 +28,15 @@
 .event-card.confirmed,.agenda-chip.confirmed,.month-event.confirmed{background:#e6f4ea;border-left-color:#34a853}
 .event-card.pending,.agenda-chip.pending,.month-event.pending{background:#fef7e0;border-left-color:#fbbc04}
 .event-card.cancelled,.agenda-chip.cancelled,.month-event.cancelled{background:#fce8e6;border-left-color:#ea4335;text-decoration:line-through}
-.week-grid{display:flex;flex-direction:column;gap:8px;padding-top:14px}
-.week-card{display:grid;grid-template-columns:128px minmax(0,1fr);align-items:stretch;min-height:58px;border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc;padding:8px 10px;cursor:pointer}
-.week-card header{display:flex;flex-direction:column;justify-content:center;gap:2px;padding-right:10px;border-right:1px solid #e2e8f0}
-.week-card header span{color:#64748b;font-size:.9rem}
-.week-card-events{display:flex;align-items:center;gap:8px;padding-left:10px;overflow:hidden;min-height:40px}
+.week-grid{display:grid;grid-template-columns:1fr;gap:12px;padding-top:14px}
+.week-card{display:grid;grid-template-columns:160px minmax(0,1fr);align-items:stretch;min-height:72px;border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc;padding:10px;cursor:pointer}
+.week-card.active{border-color:#0f62fe;box-shadow:0 8px 20px rgba(15,98,254,.15)}
+.week-card-day{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:6px 10px 6px 4px;border-right:1px solid #e2e8f0;text-align:left;background:#f1f5f9;border:none;border-radius:10px;cursor:pointer;min-width:140px}
+.week-card-day strong{color:#0f172a;font-weight:700;font-size:1rem;letter-spacing:.2px}
+.week-card-day span{color:#475569;font-size:.92rem}
+.week-selected{color:#1f2937;font-weight:600}
+.week-card-events{display:flex;align-items:center;gap:8px;padding-left:10px;overflow:hidden;min-height:40px;flex-wrap:wrap}
+.week-empty{color:#94a3b8;font-size:.9rem}
 .agenda-chip,.month-event{display:flex;flex-direction:column;gap:4px;border-radius:12px;padding:10px;border-left:4px solid transparent;cursor:pointer}
 .month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-top:14px;align-items:stretch;grid-auto-rows:minmax(138px,auto)}
 .month-day-name{font-weight:700;text-align:center;color:#475569;padding:8px 0}
@@ -45,6 +48,13 @@
 .agenda-item{display:grid;grid-template-columns:160px minmax(0,1fr);gap:14px;border:1px solid #e2e8f0;border-left-width:4px;border-radius:14px;padding:14px;background:#fff;cursor:pointer}
 .agenda-date{font-weight:700;color:#0f172a}
 .agenda-details p{margin:4px 0 0;color:#475569}
+.agenda-time{display:inline-flex;align-items:center;gap:6px;border:1px solid #d6dbe3;background:#fff;border-radius:10px;padding:6px 10px;font-weight:600;color:#0f172a;cursor:pointer}
+.agenda-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.action-btn.danger{background:#ef4444;border-color:#ef4444;color:#fff}
+.empty-block-btn{background:transparent;border:1px dashed #cbd5e1;width:100%;text-align:left;padding:12px;margin-top:4px}
+.empty-block-btn:hover{background:#f1f5f9;border-color:#94a3b8}
+.add-more-btn{background:transparent;border:1px dashed #cbd5e1;color:#64748b;padding:8px 12px;border-radius:12px;margin-left:auto}
+.add-more-btn:hover{background:#eef4ff;color:#0f62fe;border-color:#0f62fe}
 
 @media (max-width: 1100px) {
 	.editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -55,7 +65,7 @@
 	.editor-grid{grid-template-columns:1fr}
 	.month-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 	.timeline-row{grid-template-columns:78px minmax(0,1fr)}
-	.week-card{grid-template-columns:96px minmax(0,1fr)}
+	.week-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 @media (max-width: 960px) {

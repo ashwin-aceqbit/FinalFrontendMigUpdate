@@ -148,9 +148,11 @@ input[type="text"], input[type="email"], select {
   height: 4px;
   background-color: #3b82f6;
   z-index: 1;
-  transition: width 0.3s ease-in-out;
-  width: 0;
+  transition: transform 0.3s ease-in-out;
+  width: auto;
   pointer-events: none;
+  transform-origin: left;
+  transform: scaleX(0);
 }
 
 @media (max-width: 900px) {

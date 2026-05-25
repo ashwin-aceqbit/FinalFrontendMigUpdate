@@ -23,7 +23,7 @@ interface ScheduledEvent {
 export class EventSchedulerComponent implements OnInit {
   events: ScheduledEvent[] = [];
   hours = Array.from({ length: 24 }, (_, i) => i);
-  days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   dayHourSlots = Array.from({ length: 24 }, (_, i) => i);
   
   selectedView: 'day' | 'week' | 'month' | 'agenda' = 'day';
@@ -45,6 +45,8 @@ export class EventSchedulerComponent implements OnInit {
 
   constructor(private sharedData: SharedDataService) { }
 
+  weekDates: Date[] = [];
+
   ngOnInit(): void {
     this.sharedData.schedulerEvents$.subscribe(sharedEvents => {
       this.events = sharedEvents.map(event => this.fromSharedEvent(event));
@@ -53,6 +55,7 @@ export class EventSchedulerComponent implements OnInit {
       }
     });
     this.generateMonthGrid();
+    this.generateWeekDates();
   }
 
   generateHeavyEvents() {
@@ -87,9 +90,17 @@ export class EventSchedulerComponent implements OnInit {
     return this.events.filter(e => {
       const eventDate = this.parseDateKey(e.date);
       const dayMatches = eventDate.toDateString() === date.toDateString();
-      const eventHour = Number(e.startTime.split(':')[0]);
-      const endHour = Number(e.endTime.split(':')[0]);
-      const hourMatches = eventHour <= hour && endHour > hour;
+      const eventStart = this.toMinutes(e.startTime);
+      let eventEnd = this.toMinutes(e.endTime);
+      if (eventEnd <= eventStart) {
+        eventEnd += 24 * 60;
+      }
+      const hourStart = hour * 60;
+      const hourEnd = hourStart + 60;
+      if (e.endTime.endsWith(':00')) {
+        eventEnd += 1;
+      }
+      const hourMatches = eventStart < hourEnd && eventEnd >= hourStart;
       return dayMatches && hourMatches;
     });
   }
@@ -111,19 +122,13 @@ export class EventSchedulerComponent implements OnInit {
       status: 'confirmed',
       description: ''
     };
-    this.activeDate = date;
-    this.currentMonth = date.getMonth();
-    this.currentYear = date.getFullYear();
-    this.generateMonthGrid();
+    this.setActiveDate(date);
     this.showEventPopup = true;
   }
 
   editEvent(event: ScheduledEvent) {
     this.editingEventId = event.id;
-    this.activeDate = this.parseDateKey(event.date);
-    this.currentMonth = this.activeDate.getMonth();
-    this.currentYear = this.activeDate.getFullYear();
-    this.generateMonthGrid();
+    this.setActiveDate(this.parseDateKey(event.date));
     this.eventDraft = {
       title: event.title,
       date: this.toDateInput(this.parseDateKey(event.date)),
@@ -135,12 +140,35 @@ export class EventSchedulerComponent implements OnInit {
     this.showEventPopup = true;
   }
 
+  onDateInputChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    if (!this.isSingleDateValue(value)) {
+      this.eventDraft.date = this.toDateInput(this.activeDate);
+      return;
+    }
+    const selectedDate = this.fromDateInput(value);
+    this.setActiveDate(selectedDate);
+  }
+
   saveEvent() {
+    if (!this.isSingleDateValue(this.eventDraft.date)) {
+      return;
+    }
+    const startMinutes = this.toMinutes(this.eventDraft.startTime);
+    const endMinutes = this.toMinutes(this.eventDraft.endTime);
+    const selectedDate = this.fromDateInput(this.eventDraft.date);
+    if (endMinutes <= startMinutes) {
+      const adjustedEnd = new Date(selectedDate);
+      adjustedEnd.setHours(Math.min(23, Math.floor(startMinutes / 60) + 1), 0, 0, 0);
+      this.eventDraft.endTime = this.toTime(adjustedEnd);
+    }
+
     const sharedEvent = this.sharedData.createDayEvent({
       id: this.editingEventId ?? Date.now(),
       title: this.eventDraft.title,
       details: this.eventDraft.description,
-      date: this.fromDateInput(this.eventDraft.date),
+      date: selectedDate,
       source: 'scheduler',
       editable: true,
       startTime: this.eventDraft.startTime,
@@ -148,6 +176,8 @@ export class EventSchedulerComponent implements OnInit {
     });
 
     this.sharedData.saveSchedulerEvent(sharedEvent);
+
+    this.setActiveDate(selectedDate);
     this.editingEventId = null;
     this.showEventPopup = false;
   }
@@ -156,21 +186,35 @@ export class EventSchedulerComponent implements OnInit {
     this.sharedData.deleteSchedulerEvent(id);
   }
 
-  checkConflicts() {
-    console.log('Running heavy conflict detection algorithm...');
-    for (let i = 0; i < this.events.length; i++) {
-      for (let j = i + 1; j < this.events.length; j++) {
-        const e1 = this.events[i];
-        const e2 = this.events[j];
-        const e1Start = new Date(`${e1.date}T${e1.startTime}`);
-        const e1End = new Date(`${e1.date}T${e1.endTime}`);
-        const e2Start = new Date(`${e2.date}T${e2.startTime}`);
-        const e2End = new Date(`${e2.date}T${e2.endTime}`);
-        if (e1Start < e2End && e2Start < e1End) {
-          // Conflict detected
-        }
-      }
-    }
+  openAgendaTime(event: ScheduledEvent) {
+    const date = this.parseDateKey(event.date);
+    this.editingEventId = null;
+    this.eventDraft = {
+      title: '',
+      date: this.toDateInput(date),
+      startTime: event.startTime,
+      endTime: event.endTime,
+      status: 'confirmed',
+      description: ''
+    };
+    this.setActiveDate(date);
+    this.showEventPopup = true;
+  }
+
+  selectWeekDay(day: Date) {
+    this.setActiveDate(day);
+  }
+
+  isSameDay(first: Date, second: Date): boolean {
+    return first.toDateString() === second.toDateString();
+  }
+
+  private setActiveDate(date: Date) {
+    this.activeDate = new Date(date);
+    this.currentMonth = this.activeDate.getMonth();
+    this.currentYear = this.activeDate.getFullYear();
+    this.generateMonthGrid();
+    this.generateWeekDates();
   }
 
   private fromSharedEvent(event: SharedCalendarEvent): ScheduledEvent {
@@ -218,9 +262,18 @@ export class EventSchedulerComponent implements OnInit {
     return Math.max(1, endHour - startHour);
   }
 
+  private toMinutes(value: string): number {
+    const [hours, minutes] = value.split(':').map(Number);
+    return (hours ?? 0) * 60 + (minutes ?? 0);
+  }
+
+  private isSingleDateValue(value: string): boolean {
+    return Boolean(value) && !value.includes(',') && !value.includes(' to ') && !value.includes(' - ');
+  }
+
   generateMonthGrid() {
     const date = new Date(this.currentYear, this.currentMonth, 1);
-    const firstDay = (date.getDay() + 6) % 7;
+    const firstDay = date.getDay();
     const daysInMonth = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
 
     this.monthGrid = [];
@@ -249,16 +302,16 @@ export class EventSchedulerComponent implements OnInit {
     return this.events.filter(e => this.parseDateKey(e.date).toDateString() === date.toDateString());
   }
 
-  getWeekDates(): Date[] {
+  generateWeekDates() {
     const today = new Date(this.activeDate);
-    const mondayOffset = (today.getDay() + 6) % 7;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - mondayOffset);
-    monday.setHours(0, 0, 0, 0);
+    const sundayOffset = today.getDay();
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - sundayOffset);
+    sunday.setHours(0, 0, 0, 0);
 
-    return this.days.map((_, index) => {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + index);
+    this.weekDates = this.days.map((_, index) => {
+      const date = new Date(sunday);
+      date.setDate(sunday.getDate() + index);
       return date;
     });
   }

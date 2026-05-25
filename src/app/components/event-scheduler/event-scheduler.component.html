@@ -12,7 +12,6 @@
     </div>
     <div class="toolbar-actions">
       <button class="action-btn primary" (click)="openNewEvent(activeDate, 9)">Add Event</button>
-      <button class="action-btn conflict-btn" (click)="checkConflicts()">Check Conflicts</button>
     </div>
   </div>
 
@@ -25,7 +24,8 @@
         </label>
         <label>
           Date
-          <input [(ngModel)]="eventDraft.date" type="date" [ngModelOptions]="{standalone: true}">
+          <input [(ngModel)]="eventDraft.date" type="date" [ngModelOptions]="{standalone: true}" (change)="onDateInputChange($event)">
+          <span class="field-hint">Single date only.</span>
         </label>
         <label>
           Start
@@ -90,22 +90,32 @@
       <div class="panel-heading">
         <div>
           <h3>Week View</h3>
-          <p>{{ getWeekDates()[0] | date: 'MMM d' }} - {{ getWeekDates()[6] | date: 'MMM d, y' }}</p>
+          <p>{{ weekDates[0] | date: 'MMM d' }} - {{ weekDates[6] | date: 'MMM d, y' }}</p>
+          <p class="week-selected">Selected: {{ activeDate | date: 'EEEE, MMM d' }}</p>
         </div>
       </div>
       <div class="week-grid">
-        @for (day of getWeekDates(); track day; let index = $index) {
-          <article class="week-card" (click)="openNewEvent(day, 9)">
-            <header>
+        @for (day of weekDates; track day.toISOString(); let index = $index) {
+          <article class="week-card" [class.active]="isSameDay(day, activeDate)">
+            <button type="button" class="week-card-day" (click)="selectWeekDay(day)">
               <strong>{{ days[index] }}</strong>
               <span>{{ day | date: 'MMM d' }}</span>
-            </header>
+            </button>
             <div class="week-card-events">
-              @for (event of getEventsForDay(day); track event) {
+              @for (event of getEventsForDay(day); track event.id) {
                 <div class="agenda-chip" [ngClass]="event.status" (click)="editEvent(event); $event.stopPropagation()">
                   <span>{{ event.startTime }}</span>
                   <strong>{{ event.title }}</strong>
                 </div>
+              }
+              @if (!getEventsForDay(day).length) {
+                <button type="button" class="action-btn empty-block-btn" (click)="openNewEvent(day)">
+                  <span class="week-empty">No events - click to add</span>
+                </button>
+              } @else {
+                <button type="button" class="action-btn add-more-btn" (click)="openNewEvent(day)" title="Add another event">
+                  + Add
+                </button>
               }
             </div>
           </article>
@@ -127,9 +137,6 @@
         </div>
       </div>
       <div class="month-grid">
-        @for (day of days; track day) {
-          <div class="month-day-name">{{ day }}</div>
-        }
         @for (week of monthGrid; track week) {
           @for (d of week; track d) {
             <button type="button" class="month-day-cell" [class.empty]="!d" (click)="d && openNewEvent(d, 9)">
@@ -163,12 +170,18 @@
       </div>
       <div class="agenda-list">
         @for (event of events; track event) {
-          <article class="agenda-item" [ngClass]="event.status" (click)="editEvent(event)">
+          <article class="agenda-item" [ngClass]="event.status">
             <div class="agenda-date">{{ event.date | date: 'EEE, MMM d' }}</div>
             <div class="agenda-details">
               <strong>{{ event.title }}</strong>
-              <p>{{ event.startTime }} - {{ event.endTime }}</p>
+              <button class="agenda-time" type="button" (click)="openAgendaTime(event)">
+                {{ event.startTime }} - {{ event.endTime }}
+              </button>
               <p>{{ event.description }}</p>
+              <div class="agenda-actions">
+                <button class="action-btn" type="button" (click)="editEvent(event)">Edit</button>
+                <button class="action-btn danger" type="button" (click)="deleteEvent(event.id)">Remove</button>
+              </div>
             </div>
           </article>
         }

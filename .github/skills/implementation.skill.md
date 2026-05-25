@@ -42,6 +42,12 @@ tasks:
       - Document the fix in the implementation log: "Fixed zone/change detection in [Component]" with the pattern used.
       - This is a **runtime defect** that won't be caught by compilation or basic unit tests; it only appears during actual user interaction with the component.
 
+  - task: Prevent and fix Angular @for control flow referential equality hazards.
+    instructions:
+      - Scan for `@for` iterations introduced during the Angular 21 control flow migration.
+      - Ensure the iterable data source is NOT a function call that yields new object arrays on every cycle (e.g., `getWeekDates()`), as this breaks referential equality in strict `track` expressions and causes infinite evaluation/blank views.
+      - If found, refactor the application state to cache the iterable into a property (e.g., `this.weekDates = this.getWeekDates()`) and iterate over the property, keeping the `track` expression tied to a primitive string or ID.
+
   - task: Log all actions.
 
     - task: Execute the final migration plan.

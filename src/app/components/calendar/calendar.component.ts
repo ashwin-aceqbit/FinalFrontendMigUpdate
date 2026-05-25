@@ -129,6 +129,10 @@ export class CalendarComponent implements OnInit {
       return;
     }
 
+    const startMinutes = this.getMinutes(this.eventDraft.startTime);
+    const endMinutes = this.getMinutes(this.eventDraft.endTime);
+    const spansNextDay = endMinutes <= startMinutes;
+
     const event = this.sharedData.createDayEvent({
       id: this.editingEventId ?? Date.now(),
       title: this.eventDraft.title,
@@ -137,11 +141,28 @@ export class CalendarComponent implements OnInit {
       source: 'manual',
       editable: true,
       startTime: this.eventDraft.startTime,
-      endTime: this.eventDraft.endTime,
+      endTime: spansNextDay ? '23:59' : this.eventDraft.endTime,
       priority: this.eventDraft.priority
     });
 
     this.sharedData.saveCalendarEvent(event);
+
+    if (spansNextDay) {
+      const nextDate = new Date(this.selectedDate);
+      nextDate.setDate(nextDate.getDate() + 1);
+      const spilloverEvent = this.sharedData.createDayEvent({
+        id: Date.now() + 1,
+        title: this.eventDraft.title,
+        details: this.eventDraft.details,
+        date: nextDate,
+        source: 'manual',
+        editable: true,
+        startTime: '00:00',
+        endTime: this.eventDraft.endTime,
+        priority: this.eventDraft.priority
+      });
+      this.sharedData.saveCalendarEvent(spilloverEvent);
+    }
     this.editingEventId = null;
     this.eventDraft = { title: '', details: '', startTime: '09:00', endTime: '10:00', priority: 'medium' };
   }
@@ -192,5 +213,10 @@ export class CalendarComponent implements OnInit {
     if (priority === 'high') return 3;
     if (priority === 'medium') return 2;
     return 1;
+  }
+
+  private getMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return (hours ?? 0) * 60 + (minutes ?? 0);
   }
 }
