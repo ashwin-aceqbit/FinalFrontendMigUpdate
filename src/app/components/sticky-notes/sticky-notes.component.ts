@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SharedDataService } from '../../shared-data.service';
 
 interface Note {
   id: number;
@@ -44,7 +43,7 @@ export class StickyNotesComponent implements OnInit {
   mediumPriorityNotes: Note[] = [];
   lowPriorityNotes: Note[] = [];
 
-  constructor(private sharedData: SharedDataService) { }
+  constructor() { }
 
   ngOnInit(): void {
     this.generateHeavyData();
@@ -91,7 +90,6 @@ export class StickyNotesComponent implements OnInit {
     };
     this.notes = [newNote, ...this.notes.filter(note => note.id !== newNote.id)];
     this.refreshPriorityBuckets();
-    this.syncNoteWithCalendar(newNote);
     this.composer = { title: '', content: '', priority: 'low', dueDay: this.weekDays[new Date().getDay()], attachments: [] };
   }
 
@@ -126,7 +124,6 @@ export class StickyNotesComponent implements OnInit {
   moveNoteToPriority(note: Note) {
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
-    this.syncNoteWithCalendar(note);
   }
 
   getPinnedCount() {
@@ -137,14 +134,12 @@ export class StickyNotesComponent implements OnInit {
     note.content = event.target.value;
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
-    this.syncNoteWithCalendar(note);
   }
 
   updateNoteTitle(note: Note, value: string) {
     note.title = value;
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
-    this.syncNoteWithCalendar(note);
   }
 
   togglePin(note: Note) {
@@ -172,25 +167,9 @@ export class StickyNotesComponent implements OnInit {
     note.attachments = [...note.attachments, ...files];
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
-    this.syncNoteWithCalendar(note);
     input.value = '';
   }
 
-  syncNoteWithCalendar(note: Note) {
-    const date = this.sharedData.dayNameToDate(note.dueDay);
-    const eventEntry = this.sharedData.createDayEvent({
-      title: note.title,
-      details: note.content || `Sticky note (${note.priority})`,
-      date,
-      source: 'sticky',
-      editable: true,
-      dayOfWeek: note.dueDay,
-      attachments: note.attachments,
-      priority: note.priority
-    });
-
-    this.sharedData.saveSchedulerEvent(eventEntry);
-  }
 
   private removeFromPriorityBuckets(id: number) {
     this.highPriorityNotes = this.highPriorityNotes.filter(note => note.id !== id);

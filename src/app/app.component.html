@@ -2,7 +2,7 @@
   <aside class="sidebar">
     <div class="logo">
       <div class="logo-box"></div>
-      <span>H-ANGULAR V16</span>
+      <span>H-ANGULAR</span>
     </div>
     <nav>
       @for (s of sections; track s) {
@@ -33,6 +33,10 @@
     <!-- CALENDAR SECTION -->
     <section [hidden]="activeSection !== 'calendar'">
       <app-calendar></app-calendar>
+    </section>
+
+    <!-- DATE RANGE PICKER SECTION -->
+    <section [hidden]="activeSection !== 'date-range-picker'">
       <div style="margin-top: 40px;">
         <app-date-range-picker></app-date-range-picker>
       </div>
