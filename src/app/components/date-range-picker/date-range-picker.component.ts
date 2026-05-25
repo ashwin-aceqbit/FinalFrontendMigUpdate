@@ -100,12 +100,6 @@ export class DateRangePickerComponent implements OnInit {
     this.hoverDate = null;
   }
 
-  applyRange() {
-    if (!this.startDate || !this.endDate) {
-      this.endDate = this.startDate;
-    }
-  }
-
   private buildMonthView(year: number, month: number): MonthView {
     const firstOfMonth = new Date(year, month, 1);
     const startDay = firstOfMonth.getDay();

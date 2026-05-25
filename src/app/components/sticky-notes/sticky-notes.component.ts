@@ -24,6 +24,7 @@ interface Note {
     styleUrls: ['./sticky-notes.component.css']
 })
 export class StickyNotesComponent implements OnInit {
+  private readonly storageKey = 'sticky-board-notes';
   notes: Note[] = [];
   colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF'];
   weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -46,8 +47,36 @@ export class StickyNotesComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    this.generateHeavyData();
+    this.loadNotes();
+    if (!this.notes.length) {
+      this.generateHeavyData();
+      this.persistNotes();
+    }
     this.refreshPriorityBuckets();
+  }
+
+  private loadNotes() {
+    try {
+      const raw = localStorage.getItem(this.storageKey);
+      if (!raw) {
+        return;
+      }
+      const parsed = JSON.parse(raw) as Array<Note & { lastModified: string }>;
+      this.notes = parsed.map(note => ({
+        ...note,
+        lastModified: new Date(note.lastModified)
+      }));
+    } catch {
+      this.notes = [];
+    }
+  }
+
+  private persistNotes() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.notes));
+    } catch {
+      // Ignore storage quota issues in the demo environment.
+    }
   }
 
   generateHeavyData() {
@@ -90,12 +119,14 @@ export class StickyNotesComponent implements OnInit {
     };
     this.notes = [newNote, ...this.notes.filter(note => note.id !== newNote.id)];
     this.refreshPriorityBuckets();
+    this.persistNotes();
     this.composer = { title: '', content: '', priority: 'low', dueDay: this.weekDays[new Date().getDay()], attachments: [] };
   }
 
   deleteNote(id: number) {
     this.notes = this.notes.filter(n => n.id !== id);
     this.removeFromPriorityBuckets(id);
+    this.persistNotes();
   }
 
   onMouseDown(event: MouseEvent, note: Note) {
@@ -115,6 +146,7 @@ export class StickyNotesComponent implements OnInit {
 
   onMouseUp() {
     this.draggedNote = null;
+    this.persistNotes();
   }
 
   trackByNoteId(index: number, note: Note) {
@@ -124,6 +156,7 @@ export class StickyNotesComponent implements OnInit {
   moveNoteToPriority(note: Note) {
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
+    this.persistNotes();
   }
 
   getPinnedCount() {
@@ -134,18 +167,21 @@ export class StickyNotesComponent implements OnInit {
     note.content = event.target.value;
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
+    this.persistNotes();
   }
 
   updateNoteTitle(note: Note, value: string) {
     note.title = value;
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
+    this.persistNotes();
   }
 
   togglePin(note: Note) {
     note.isPinned = !note.isPinned;
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
+    this.persistNotes();
   }
 
   changeColor(note: Note) {
@@ -153,12 +189,14 @@ export class StickyNotesComponent implements OnInit {
     note.color = this.colors[(currentIndex + 1) % this.colors.length];
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
+    this.persistNotes();
   }
 
   handleComposerFiles(event: Event) {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []).map(file => file.name);
     this.composer.attachments = files;
+    this.persistNotes();
   }
 
   handleNoteFiles(note: Note, event: Event) {
@@ -167,6 +205,7 @@ export class StickyNotesComponent implements OnInit {
     note.attachments = [...note.attachments, ...files];
     note.lastModified = new Date();
     this.promoteNoteToTop(note);
+    this.persistNotes();
     input.value = '';
   }
 
