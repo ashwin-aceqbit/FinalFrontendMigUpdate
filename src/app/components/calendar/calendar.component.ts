@@ -35,6 +35,7 @@ export class CalendarComponent implements OnInit {
     priority: 'medium' as 'low' | 'medium' | 'high'
   };
   
+  hours = Array.from({ length: 24 }, (_, i) => i);
   lunarPhases = ['New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous', 'Full Moon', 'Waning Gibbous', 'Last Quarter', 'Waning Crescent'];
 
   constructor(private sharedData: SharedDataService) { }
@@ -131,7 +132,10 @@ export class CalendarComponent implements OnInit {
 
     const startMinutes = this.getMinutes(this.eventDraft.startTime);
     const endMinutes = this.getMinutes(this.eventDraft.endTime);
-    const spansNextDay = endMinutes <= startMinutes;
+    if (endMinutes <= startMinutes) {
+      alert('Invalid time');
+      return;
+    }
 
     const event = this.sharedData.createDayEvent({
       id: this.editingEventId ?? Date.now(),
@@ -141,28 +145,12 @@ export class CalendarComponent implements OnInit {
       source: 'manual',
       editable: true,
       startTime: this.eventDraft.startTime,
-      endTime: spansNextDay ? '23:59' : this.eventDraft.endTime,
+      endTime: this.eventDraft.endTime,
       priority: this.eventDraft.priority
     });
 
     this.sharedData.saveCalendarEvent(event);
 
-    if (spansNextDay) {
-      const nextDate = new Date(this.selectedDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      const spilloverEvent = this.sharedData.createDayEvent({
-        id: Date.now() + 1,
-        title: this.eventDraft.title,
-        details: this.eventDraft.details,
-        date: nextDate,
-        source: 'manual',
-        editable: true,
-        startTime: '00:00',
-        endTime: this.eventDraft.endTime,
-        priority: this.eventDraft.priority
-      });
-      this.sharedData.saveCalendarEvent(spilloverEvent);
-    }
     this.editingEventId = null;
     this.eventDraft = { title: '', details: '', startTime: '09:00', endTime: '10:00', priority: 'medium' };
   }

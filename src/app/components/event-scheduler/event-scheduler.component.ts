@@ -159,9 +159,8 @@ export class EventSchedulerComponent implements OnInit {
     const endMinutes = this.toMinutes(this.eventDraft.endTime);
     const selectedDate = this.fromDateInput(this.eventDraft.date);
     if (endMinutes <= startMinutes) {
-      const adjustedEnd = new Date(selectedDate);
-      adjustedEnd.setHours(Math.min(23, Math.floor(startMinutes / 60) + 1), 0, 0, 0);
-      this.eventDraft.endTime = this.toTime(adjustedEnd);
+      alert('Invalid time');
+      return;
     }
 
     const sharedEvent = this.sharedData.createDayEvent({
@@ -187,18 +186,7 @@ export class EventSchedulerComponent implements OnInit {
   }
 
   openAgendaTime(event: ScheduledEvent) {
-    const date = this.parseDateKey(event.date);
-    this.editingEventId = null;
-    this.eventDraft = {
-      title: '',
-      date: this.toDateInput(date),
-      startTime: event.startTime,
-      endTime: event.endTime,
-      status: 'confirmed',
-      description: ''
-    };
-    this.setActiveDate(date);
-    this.showEventPopup = true;
+    this.editEvent(event);
   }
 
   selectWeekDay(day: Date) {

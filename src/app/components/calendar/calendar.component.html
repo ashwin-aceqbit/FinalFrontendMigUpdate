@@ -75,11 +75,19 @@
         <div class="editor-row">
           <label>
             Start
-            <input [(ngModel)]="eventDraft.startTime" type="time">
+            <select [(ngModel)]="eventDraft.startTime">
+              @for (hour of hours; track hour) {
+                <option [value]="(hour < 10 ? '0' + hour : hour) + ':00'">{{ hour }}</option>
+              }
+            </select>
           </label>
           <label>
             End
-            <input [(ngModel)]="eventDraft.endTime" type="time">
+            <select [(ngModel)]="eventDraft.endTime">
+              @for (hour of hours; track hour) {
+                <option [value]="(hour < 10 ? '0' + hour : hour) + ':00'">{{ hour }}</option>
+              }
+            </select>
           </label>
           <label>
             Priority

@@ -29,11 +29,19 @@
         </label>
         <label>
           Start
-          <input [(ngModel)]="eventDraft.startTime" type="time">
+          <select [(ngModel)]="eventDraft.startTime">
+            @for (hour of hours; track hour) {
+              <option [value]="(hour < 10 ? '0' + hour : hour) + ':00'">{{ hour }}</option>
+            }
+          </select>
         </label>
         <label>
           End
-          <input [(ngModel)]="eventDraft.endTime" type="time">
+          <select [(ngModel)]="eventDraft.endTime">
+            @for (hour of hours; track hour) {
+              <option [value]="(hour < 10 ? '0' + hour : hour) + ':00'">{{ hour }}</option>
+            }
+          </select>
         </label>
         <label>
           Status
@@ -96,7 +104,7 @@
       </div>
       <div class="week-grid">
         @for (day of weekDates; track day.toISOString(); let index = $index) {
-          <article class="week-card" [class.active]="isSameDay(day, activeDate)">
+          <article class="week-card">
             <button type="button" class="week-card-day" (click)="selectWeekDay(day)">
               <strong>{{ days[index] }}</strong>
               <span>{{ day | date: 'MMM d' }}</span>
@@ -104,18 +112,9 @@
             <div class="week-card-events">
               @for (event of getEventsForDay(day); track event.id) {
                 <div class="agenda-chip" [ngClass]="event.status" (click)="editEvent(event); $event.stopPropagation()">
-                  <span>{{ event.startTime }}</span>
+                  <span>{{ event.startTime }} to {{ event.endTime }}</span>
                   <strong>{{ event.title }}</strong>
                 </div>
-              }
-              @if (!getEventsForDay(day).length) {
-                <button type="button" class="action-btn empty-block-btn" (click)="openNewEvent(day)">
-                  <span class="week-empty">No events - click to add</span>
-                </button>
-              } @else {
-                <button type="button" class="action-btn add-more-btn" (click)="openNewEvent(day)" title="Add another event">
-                  + Add
-                </button>
               }
             </div>
           </article>
@@ -147,7 +146,7 @@
                 <div class="month-day-events">
                   @for (event of getEventsForDay(d); track event) {
                     <span class="month-event" [ngClass]="event.status" (click)="editEvent(event); $event.stopPropagation()">
-                      {{ event.startTime }} {{ event.title }}
+                      {{ event.startTime }} - {{ event.endTime }} {{ event.title }}
                     </span>
                   }
                 </div>
