@@ -23,18 +23,9 @@
             tabindex="0">
             <div class="day-top">
               <span class="day-number">{{ day.date | date:'d' }}</span>
-              <span class="lunar-phase" [title]="day.lunarPhase">{{ day.lunarPhase }}</span>
             </div>
             <div class="day-content">
-              @if (day.holiday) {
-                <div class="holiday-badge">{{ day.holiday }}</div>
-              }
-              @if (day.weather) {
-                <div class="weather-info">
-                  <span>{{ day.weather.icon }}</span>
-                  <span>{{ day.weather.temp }}°C</span>
-                </div>
-              }
+              
               <div class="events-container">
                 @for (event of day.events; track event) {
                   <button
@@ -46,16 +37,7 @@
                   </button>
                 }
               </div>
-              <div class="metrics-overlay">
-                <div class="metric-bar" [style.width.%]="day.metrics?.cpu" [style.background]="'#ff5252'"></div>
-                <div class="metric-bar" [style.width.%]="day.metrics?.memory" [style.background]="'#448aff'"></div>
               </div>
-            </div>
-            <div class="day-meta-hidden">
-              @for (i of [1,2,3,4,5]; track i) {
-                <div class="dummy-data-point"></div>
-              }
-            </div>
           </div>
         }
       </div>
@@ -75,19 +57,35 @@
         <div class="editor-row">
           <label>
             Start
-            <select [(ngModel)]="eventDraft.startTime">
-              @for (hour of hours; track hour) {
-                <option [value]="(hour < 10 ? '0' + hour : hour) + ':00'">{{ hour }}</option>
-              }
-            </select>
+            <div style="display: flex; gap: 4px;">
+              <select [(ngModel)]="eventDraft.startHour">
+                @for (hour of hours; track hour) {
+                  <option [value]="hour">{{ hour < 10 ? '0' + hour : hour }}</option>
+                }
+              </select>
+              <span>:</span>
+              <select [(ngModel)]="eventDraft.startMinute">
+                @for (minute of minutes; track minute) {
+                  <option [value]="minute">{{ minute < 10 ? '0' + minute : minute }}</option>
+                }
+              </select>
+            </div>
           </label>
           <label>
             End
-            <select [(ngModel)]="eventDraft.endTime">
-              @for (hour of hours; track hour) {
-                <option [value]="(hour < 10 ? '0' + hour : hour) + ':00'">{{ hour }}</option>
-              }
-            </select>
+            <div style="display: flex; gap: 4px;">
+              <select [(ngModel)]="eventDraft.endHour">
+                @for (hour of hours; track hour) {
+                  <option [value]="hour">{{ hour < 10 ? '0' + hour : hour }}</option>
+                }
+              </select>
+              <span>:</span>
+              <select [(ngModel)]="eventDraft.endMinute">
+                @for (minute of minutes; track minute) {
+                  <option [value]="minute">{{ minute < 10 ? '0' + minute : minute }}</option>
+                }
+              </select>
+            </div>
           </label>
           <label>
             Priority
@@ -109,6 +107,7 @@
             <div>
               <strong>{{ event.title }}</strong>
               <p>{{ event.details }}</p>
+              <small class="timestamp-stamp">Added: {{ event.updatedAt | date:'medium' }}</small>
             </div>
             <div class="event-actions">
               <button type="button" (click)="startEdit(event)">Edit</button>

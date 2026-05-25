@@ -29,19 +29,35 @@
         </label>
         <label>
           Start
-          <select [(ngModel)]="eventDraft.startTime">
-            @for (hour of hours; track hour) {
-              <option [value]="(hour < 10 ? '0' + hour : hour) + ':00'">{{ hour }}</option>
-            }
-          </select>
+          <div style="display: flex; gap: 4px;">
+            <select [(ngModel)]="eventDraft.startHour">
+              @for (hour of hours; track hour) {
+                <option [value]="hour">{{ hour < 10 ? '0' + hour : hour }}</option>
+              }
+            </select>
+            <span>:</span>
+            <select [(ngModel)]="eventDraft.startMinute">
+              @for (minute of minutes; track minute) {
+                <option [value]="minute">{{ minute < 10 ? '0' + minute : minute }}</option>
+              }
+            </select>
+          </div>
         </label>
         <label>
           End
-          <select [(ngModel)]="eventDraft.endTime">
-            @for (hour of hours; track hour) {
-              <option [value]="(hour < 10 ? '0' + hour : hour) + ':00'">{{ hour }}</option>
-            }
-          </select>
+          <div style="display: flex; gap: 4px;">
+            <select [(ngModel)]="eventDraft.endHour">
+              @for (hour of hours; track hour) {
+                <option [value]="hour">{{ hour < 10 ? '0' + hour : hour }}</option>
+              }
+            </select>
+            <span>:</span>
+            <select [(ngModel)]="eventDraft.endMinute">
+              @for (minute of minutes; track minute) {
+                <option [value]="minute">{{ minute < 10 ? '0' + minute : minute }}</option>
+              }
+            </select>
+          </div>
         </label>
         <label>
           Status
@@ -68,26 +84,30 @@
       <div class="panel-heading">
         <div>
           <h3>{{ activeDate | date: 'fullDate' }}</h3>
-          <p>24 hour rows stacked vertically with a long horizontal event lane.</p>
         </div>
         <div class="panel-actions">
           <button class="action-btn" (click)="prevDay()">Previous</button>
           <button class="action-btn" (click)="nextDay()">Next</button>
         </div>
       </div>
-      <div class="day-grid">
+      <div class="day-grid" style="position: relative; padding-top: 14px; gap: 0;">
         @for (hour of dayHourSlots; track hour) {
           <button class="timeline-row" (click)="openNewEvent(activeDate, hour)">
             <div class="timeline-hour">{{ hour | number: '2.0-0' }}:00</div>
-            <div class="timeline-events">
-              @for (event of getEventsForSlot(activeDate, hour); track event) {
-                <article class="event-card" [ngClass]="event.status" (click)="editEvent(event); $event.stopPropagation()">
-                  <strong>{{ event.title }}</strong>
-                  <span>{{ event.startTime }} - {{ event.endTime }}</span>
-                </article>
-              }
-            </div>
+            <div class="timeline-events-empty" style="width: 100%;"></div>
           </button>
+        }
+        
+        @for (event of getEventsForDay(activeDate); track event) {
+          <article class="event-card-spanning" [ngClass]="event.status"
+            [style.top.px]="getEventTopOffset(event)"
+            [style.height.px]="calculateHeight(event)"
+            (click)="editEvent(event); $event.stopPropagation()">
+            <div class="event-centered-content">
+              <strong>{{ event.title }}</strong>
+              <span>{{ event.startTime }} - {{ event.endTime }} (Duration: {{ getDurationString(event) }})</span>
+            </div>
+          </article>
         }
       </div>
     </section>
@@ -177,6 +197,9 @@
                 {{ event.startTime }} - {{ event.endTime }}
               </button>
               <p>{{ event.description }}</p>
+              @if(event.updatedAt) {
+                <small class="timestamp-stamp">Added on: {{ event.updatedAt | date:'medium' }}</small>
+              }
               <div class="agenda-actions">
                 <button class="action-btn" type="button" (click)="editEvent(event)">Edit</button>
                 <button class="action-btn danger" type="button" (click)="deleteEvent(event.id)">Remove</button>

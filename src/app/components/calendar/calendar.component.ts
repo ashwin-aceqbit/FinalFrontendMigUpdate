@@ -8,10 +8,6 @@ interface CalendarDay {
   isToday: boolean;
   isCurrentMonth: boolean;
   events: SharedCalendarEvent[];
-  holiday?: string;
-  lunarPhase?: string;
-  weather?: { temp: number; icon: string };
-  metrics?: { cpu: number; memory: number }; // Stress test data
 }
 
 @Component({
@@ -30,13 +26,15 @@ export class CalendarComponent implements OnInit {
   eventDraft = {
     title: '',
     details: '',
-    startTime: '09:00',
-    endTime: '10:00',
+    startHour: 9,
+    startMinute: 0,
+    endHour: 10,
+    endMinute: 0,
     priority: 'medium' as 'low' | 'medium' | 'high'
   };
   
   hours = Array.from({ length: 24 }, (_, i) => i);
-  lunarPhases = ['New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous', 'Full Moon', 'Waning Gibbous', 'Last Quarter', 'Waning Crescent'];
+  minutes = Array.from({ length: 60 }, (_, i) => i);
 
   constructor(private sharedData: SharedDataService) { }
 
@@ -80,17 +78,12 @@ export class CalendarComponent implements OnInit {
 
   createEnhancedDay(date: Date, isCurrentMonth: boolean): CalendarDay {
     const today = new Date();
-    const d = date.getDate();
     
     return {
       date,
       isToday: date.toDateString() === today.toDateString(),
       isCurrentMonth,
-      events: this.getEventsForDate(date),
-      holiday: d % 10 === 0 ? `Holiday Type ${d}` : undefined,
-      lunarPhase: this.lunarPhases[d % 8],
-      weather: { temp: 20 + (d % 15), icon: d % 3 === 0 ? '☀️' : (d % 3 === 1 ? '☁️' : '🌧️') },
-      metrics: { cpu: Math.random() * 100, memory: Math.random() * 100 }
+      events: this.getEventsForDate(date)
     };
   }
 
@@ -110,17 +103,26 @@ export class CalendarComponent implements OnInit {
   selectDate(date: Date) {
     this.selectedDate = date;
     this.editingEventId = null;
-    this.eventDraft = { title: '', details: '', startTime: '09:00', endTime: '10:00', priority: 'medium' };
+    this.eventDraft = { title: '', details: '', startHour: 9, startMinute: 0, endHour: 10, endMinute: 0, priority: 'medium' };
   }
 
   startEdit(event: SharedCalendarEvent) {
     this.selectedDate = this.parseLocalDate(event.date);
     this.editingEventId = event.id;
+    const parseTime = (time: string) => {
+      const [h, m] = time.split(':').map(Number);
+      return { h: h || 0, m: m || 0 };
+    };
+    const start = parseTime(event.startTime ?? '09:00');
+    const end = parseTime(event.endTime ?? '10:00');
+
     this.eventDraft = {
       title: event.title,
       details: event.details,
-      startTime: event.startTime ?? '09:00',
-      endTime: event.endTime ?? '10:00',
+      startHour: start.h,
+      startMinute: start.m,
+      endHour: end.h,
+      endMinute: end.m,
       priority: event.priority ?? 'medium'
     };
   }
@@ -130,12 +132,21 @@ export class CalendarComponent implements OnInit {
       return;
     }
 
-    const startMinutes = this.getMinutes(this.eventDraft.startTime);
-    const endMinutes = this.getMinutes(this.eventDraft.endTime);
+    const startHourNum = Number(this.eventDraft.startHour);
+    const startMinuteNum = Number(this.eventDraft.startMinute);
+    const endHourNum = Number(this.eventDraft.endHour);
+    const endMinuteNum = Number(this.eventDraft.endMinute);
+
+    const startMinutes = startHourNum * 60 + startMinuteNum;
+    const endMinutes = endHourNum * 60 + endMinuteNum;
     if (endMinutes <= startMinutes) {
-      alert('Invalid time');
+      alert('invalid choice');
       return;
     }
+
+    const formatTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const startTimeStr = formatTime(startHourNum, startMinuteNum);
+    const endTimeStr = formatTime(endHourNum, endMinuteNum);
 
     const event = this.sharedData.createDayEvent({
       id: this.editingEventId ?? Date.now(),
@@ -144,22 +155,22 @@ export class CalendarComponent implements OnInit {
       date: this.selectedDate,
       source: 'manual',
       editable: true,
-      startTime: this.eventDraft.startTime,
-      endTime: this.eventDraft.endTime,
+      startTime: startTimeStr,
+      endTime: endTimeStr,
       priority: this.eventDraft.priority
     });
 
     this.sharedData.saveCalendarEvent(event);
 
     this.editingEventId = null;
-    this.eventDraft = { title: '', details: '', startTime: '09:00', endTime: '10:00', priority: 'medium' };
+    this.eventDraft = { title: '', details: '', startHour: 9, startMinute: 0, endHour: 10, endMinute: 0, priority: 'medium' };
   }
 
   removeEvent(id: number) {
     this.sharedData.deleteCalendarEvent(id);
     if (this.editingEventId === id) {
       this.editingEventId = null;
-      this.eventDraft = { title: '', details: '', startTime: '09:00', endTime: '10:00', priority: 'medium' };
+      this.eventDraft = { title: '', details: '', startHour: 9, startMinute: 0, endHour: 10, endMinute: 0, priority: 'medium' };
     }
   }
 

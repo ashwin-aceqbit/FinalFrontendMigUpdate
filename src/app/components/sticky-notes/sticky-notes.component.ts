@@ -189,7 +189,6 @@ export class StickyNotesComponent implements OnInit {
       priority: note.priority
     });
 
-    this.sharedData.saveCalendarEvent(eventEntry);
     this.sharedData.saveSchedulerEvent(eventEntry);
   }
 

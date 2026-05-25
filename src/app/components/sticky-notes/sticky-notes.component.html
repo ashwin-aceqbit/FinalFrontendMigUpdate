@@ -2,7 +2,6 @@
   <div class="board-header">
     <div class="board-header-top">
       <h1>Sticky Board</h1>
-      <button class="add-btn" (click)="addNote()">+ Add New Note</button>
     </div>
     <div class="stats">
       <span>Total Notes: {{notes.length}}</span>
@@ -34,6 +33,9 @@
         }
       </div>
     }
+    <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+      <button class="add-btn" (click)="addNote()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Add New Note</button>
+    </div>
   </div>
 
   <div class="notes-columns">

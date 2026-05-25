@@ -12,6 +12,7 @@ interface ScheduledEvent {
   status: 'confirmed' | 'pending' | 'cancelled';
   description: string;
   editable: boolean;
+  updatedAt?: string;
 }
 
 @Component({
@@ -32,11 +33,14 @@ export class EventSchedulerComponent implements OnInit {
   eventDraft = {
     title: '',
     date: this.toDateInput(new Date()),
-    startTime: '09:00',
-    endTime: '10:00',
+    startHour: 9,
+    startMinute: 0,
+    endHour: 10,
+    endMinute: 0,
     status: 'confirmed' as 'confirmed' | 'pending' | 'cancelled',
     description: ''
   };
+  minutes = Array.from({ length: 60 }, (_, i) => i);
   
   monthGrid: (Date | null)[][] = [];
   currentMonth: number = new Date().getMonth();
@@ -50,64 +54,38 @@ export class EventSchedulerComponent implements OnInit {
   ngOnInit(): void {
     this.sharedData.schedulerEvents$.subscribe(sharedEvents => {
       this.events = sharedEvents.map(event => this.fromSharedEvent(event));
-      if (!this.events.length) {
-        this.generateHeavyEvents();
-      }
     });
     this.generateMonthGrid();
     this.generateWeekDates();
-  }
-
-  generateHeavyEvents() {
-    const startDate = new Date();
-    startDate.setHours(9, 0, 0, 0);
-    
-    for (let i = 0; i < 5; i++) {
-      const start = new Date(startDate);
-      start.setDate(start.getDate() + Math.floor(Math.random() * 7));
-      start.setHours(8 + Math.floor(Math.random() * 9));
-
-      const end = new Date(start);
-      end.setHours(start.getHours() + 1 + Math.floor(Math.random() * 2));
-
-      const event = this.sharedData.createDayEvent({
-        id: i,
-        title: `Project Sync ${i + 1}`,
-        details: `Agenda item ${i + 1} focused on live coordination, milestone review, and next-step actions.`,
-        date: start,
-        source: 'scheduler',
-        editable: true,
-        status: i % 10 === 0 ? 'cancelled' : (i % 3 === 0 ? 'pending' : 'confirmed'),
-        startTime: this.toTime(start),
-        endTime: this.toTime(end)
-      });
-
-      this.sharedData.saveSchedulerEvent(event);
-    }
   }
 
   getEventsForSlot(date: Date, hour: number): ScheduledEvent[] {
     return this.events.filter(e => {
       const eventDate = this.parseDateKey(e.date);
       const dayMatches = eventDate.toDateString() === date.toDateString();
-      const eventStart = this.toMinutes(e.startTime);
-      let eventEnd = this.toMinutes(e.endTime);
-      if (eventEnd <= eventStart) {
-        eventEnd += 24 * 60;
-      }
-      const hourStart = hour * 60;
-      const hourEnd = hourStart + 60;
-      if (e.endTime.endsWith(':00')) {
-        eventEnd += 1;
-      }
-      const hourMatches = eventStart < hourEnd && eventEnd >= hourStart;
-      return dayMatches && hourMatches;
+      const eventStartHour = Math.floor(this.toMinutes(e.startTime) / 60);
+      return dayMatches && eventStartHour === hour;
     });
   }
 
+  getEventTopOffset(event: ScheduledEvent): number {
+    return 14 + this.toMinutes(event.startTime);
+  }
+
   calculateHeight(event: ScheduledEvent): number {
-    const duration = this.timeDiffHours(event.startTime, event.endTime);
-    return duration * 60; // 60px per hour
+    const start = this.toMinutes(event.startTime);
+    let end = this.toMinutes(event.endTime);
+    if (end <= start) {
+      end += 24 * 60;
+    }
+    return end - start;
+  }
+
+  getDurationString(event: ScheduledEvent): string {
+    const diff = this.calculateHeight(event);
+    const hrs = Math.floor(diff / 60);
+    const mins = diff % 60;
+    return hrs > 0 ? `${hrs}h ${mins > 0 ? mins + 'm' : ''}`.trim() : `${mins}m`;
   }
 
   openNewEvent(dateInput?: Date, hour = 9) {
@@ -117,8 +95,10 @@ export class EventSchedulerComponent implements OnInit {
     this.eventDraft = {
       title: '',
       date: this.toDateInput(date),
-      startTime: `${String(hour).padStart(2, '0')}:00`,
-      endTime: `${String(hour + 1).padStart(2, '0')}:00`,
+      startHour: hour,
+      startMinute: 0,
+      endHour: hour + 1,
+      endMinute: 0,
       status: 'confirmed',
       description: ''
     };
@@ -126,14 +106,23 @@ export class EventSchedulerComponent implements OnInit {
     this.showEventPopup = true;
   }
 
+  parseTime(timeStr: string) {
+    const [h, m] = timeStr.split(':').map(Number);
+    return { h: h || 0, m: m || 0 };
+  }
+
   editEvent(event: ScheduledEvent) {
     this.editingEventId = event.id;
     this.setActiveDate(this.parseDateKey(event.date));
+    const start = this.parseTime(event.startTime);
+    const end = this.parseTime(event.endTime);
     this.eventDraft = {
       title: event.title,
       date: this.toDateInput(this.parseDateKey(event.date)),
-      startTime: event.startTime,
-      endTime: event.endTime,
+      startHour: start.h,
+      startMinute: start.m,
+      endHour: end.h,
+      endMinute: end.m,
       status: event.status,
       description: event.description
     };
@@ -155,13 +144,22 @@ export class EventSchedulerComponent implements OnInit {
     if (!this.isSingleDateValue(this.eventDraft.date)) {
       return;
     }
-    const startMinutes = this.toMinutes(this.eventDraft.startTime);
-    const endMinutes = this.toMinutes(this.eventDraft.endTime);
+    const startHourNum = Number(this.eventDraft.startHour);
+    const startMinuteNum = Number(this.eventDraft.startMinute);
+    const endHourNum = Number(this.eventDraft.endHour);
+    const endMinuteNum = Number(this.eventDraft.endMinute);
+
+    const startMinutes = startHourNum * 60 + startMinuteNum;
+    const endMinutes = endHourNum * 60 + endMinuteNum;
     const selectedDate = this.fromDateInput(this.eventDraft.date);
     if (endMinutes <= startMinutes) {
-      alert('Invalid time');
+      alert('invalid choice');
       return;
     }
+
+    const formatTime = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const startTimeStr = formatTime(startHourNum, startMinuteNum);
+    const endTimeStr = formatTime(endHourNum, endMinuteNum);
 
     const sharedEvent = this.sharedData.createDayEvent({
       id: this.editingEventId ?? Date.now(),
@@ -170,9 +168,13 @@ export class EventSchedulerComponent implements OnInit {
       date: selectedDate,
       source: 'scheduler',
       editable: true,
-      startTime: this.eventDraft.startTime,
-      endTime: this.eventDraft.endTime
+      startTime: startTimeStr,
+      endTime: endTimeStr
     });
+    
+    if (this.eventDraft.status) {
+      sharedEvent.status = this.eventDraft.status;
+    }
 
     this.sharedData.saveSchedulerEvent(sharedEvent);
 
@@ -216,7 +218,8 @@ export class EventSchedulerComponent implements OnInit {
       endTime: end,
       status: event.status ?? 'confirmed',
       description: event.details,
-      editable: event.editable
+      editable: event.editable,
+      updatedAt: event.updatedAt
     };
   }
 
